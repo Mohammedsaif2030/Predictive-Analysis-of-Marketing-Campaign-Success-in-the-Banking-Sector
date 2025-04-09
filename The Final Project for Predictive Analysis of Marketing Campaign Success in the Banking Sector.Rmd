@@ -1,0 +1,837 @@
+---
+output: 
+  pdf_document:
+    toc: false             # ✅ Disable auto TOC
+    toc_depth: 1
+    number_sections: true
+    latex_engine: pdflatex
+    keep_tex: true
+fontsize: 12pt
+geometry: margin=1in
+---
+
+
+
+
+
+\begin{titlepage}
+\centering
+
+\vspace*{5cm}
+
+{\LARGE \textbf{Predictive Analysis of Marketing Campaign Success in the Banking Sector} \par}
+
+{\Large \textbf{} \par}
+
+\vspace{2cm}
+\textbf{Team Members} \par
+\vspace{0.3cm}
+Mohammed Saif Alotaibi \quad | \quad Asif Khan \quad | \quad Aboda Radwan
+
+\vspace{1.5cm}
+\textbf{Date:} March 9, 2025
+
+\vfill
+
+{\large \textbf{CS5610 - Advanced R for Data Science}} \par
+College of Engineering and Applied Sciences \par
+Department of Computer Science \par
+Western Michigan University \par
+Spring 2025
+
+\vspace{1cm}
+\textbf{Instructor: Dr. Wassnaa Al-Mawee}
+
+\end{titlepage}
+
+
+
+
+
+
+\newpage
+\tableofcontents
+\newpage
+
+
+```{r setup, include=FALSE}
+# Install and configure TinyTeX only if not already installed
+if (!tinytex::is_tinytex()) {
+  tinytex::install_tinytex()
+}
+
+# Define the required packages
+required_packages <- c("ggplot2", "dplyr", "gridExtra", "lubridate", "caret", 
+                       "caretEnsemble", "naivebayes", "randomForest", "MASS", 
+                       "pROC", "rpart", "reshape2", "tidyr")
+
+# Identify and install missing packages
+missing_packages <- setdiff(required_packages, installed.packages()[,"Package"])
+if(length(missing_packages)) {
+  install.packages(missing_packages, dependencies = TRUE)
+}
+
+# Load all required packages
+lapply(required_packages, library, character.only = TRUE)
+
+```
+
+
+
+```{r, include=FALSE}
+# Load the data set
+bank <- read.csv("bank-full-2025.csv", sep=",", header=TRUE, stringsAsFactors=FALSE)
+```
+
+
+# Motivation and Overview
+
+In the modern world, conventional ways of marketing such as cold calls that are not requested and generic pitches are no longer effective. Individuals have much to do and are more discerning regarding the offers they find worthwhile. What if a bank were able to predict what its customers really need? What if it knew customers so well that it could offer what really counts at the right moment.
+
+This project, "Predictive Analysis of Marketing Campaign Success in the Banking Sector" endeavors to do precisely that. By analyzing data from past marketing campaigns, we hope to establish the most critical drivers that influence customer subscription to banking products. We seek to look deeper into the data to discover patterns and what worked, what did not, and why.
+
+This project is not merely about selling more but about smarter marketing. Predictive analytics, through machine learning algorithms, will enable us to actually know customer behavior, such as demographic information, spending habits, and past interactions with the bank. With this data, marketing campaigns can become more focused, sending the right message to the right customers in a way that resonates with them.
+
+At its core, this project is one of humanizing marketing: moving beyond formulaic, centuries-old campaigns and engaging in meaningful relations with clients. By understanding what they need and desire, the bank can shift from selling products to actually helping customers make wise financial decisions, good for both the business and the customers.
+
+# Related Work
+
+Predictive analytics and machine learning now change how banks approach marketing in an effort to understand which customers are most likely to subscribe to term deposits. Instead of the usual broad and spacious marketing campaigns, banks use data-driven techniques to get to know their clients better and offer them appropriate financial products. This subject was approached in a different manner using machine learning by different researchers. The efficiency that machine learning models bring forth on marketing, due to several pieces of research to be considered.
+
+Zaki et al. (2024) conducted their research to assess how predictive analytics can contribute toward improving direct banking marketing. Herein, the authors performed certain research related to past marketing campaigns to figure out the main determinants influencing a customer's choices. By applying machine learning techniques like Random Forest and XGBoost, they were able to develop predictive models showing which customers are more likely to subscribe to a bank term deposit. The study strongly emphasizes understanding customer behavior through the analysis of available data, helping banks in strategizing and providing more focused marketing.
+
+Similarly, Hou et al. (2022) explored several machine learning models for customer subscription prediction. Five algorithms were tested in their study: Naïve Bayes, Decision Tree, Random Forest, Support Vector Machine, and the Neural Network. It was found that machine learning methods can greatly improve the accuracy of the prediction and thus help companies, especially banks, make more efficient marketing decisions. Some of the models performed better than others, such as Random Forest.
+
+On a more pragmatic level, Vashi et al. (2024) created a software tool especially for predictive analytics in banking. Advanced data mining and analysis techniques were used to analyze the information profiles of the customer, using the decision trees and association rules developed in their tool in order to predict whether a customer is likely to subscribe to a term deposit. Distinctively in this study, it is an explainability problem, not just giving the banks accurate predictions but providing an understanding of why a certain client is going to subscribe or not. In this sense, for transparency, it will be key to any financial entity and also generally for all other organizations to foster customers' confidence when making data-driven decisions.
+
+Peter et al. (2025) investigated the performance of ensemble learning models to improve customers' subscription predictions in banking telemarketing. According to the research, stacking models demonstrated high accuracy. Besides, their study underlined contact duration, economic indicators, and customer age as those that significantly influence subscription likelihood. They also outlined that the predictive analytics has a great value to banks because it can adjust marketing strategies dynamically. With ensembling, banks can improve targeting, reduce costs, and enhance campaign efficiency.
+
+Buddiga 2022 discussed how predictive modeling techniques could be used to enhance clients' acquisition strategies in retail banking. Predictive models using machine learning techniques like logistic regression, decision trees, discriminant analysis, and neural networks were employed to predict customer subscription behavior. The results of using data from the UCI repository showed that logistic regression, with an accuracy of 81%, had the highest accuracy, followed by the nearest neural networks with an accuracy of 80%. This study emphasized the dilemma between interpretability and the accuracy of predictive models to reduce misclassifications and support banks in their marketing strategies.
+
+Elsalamony (2013) investigates the role of data mining methods in refining bank marketing campaign efficiency. The paper evaluates several machine learning models: multilayer perceptron neural networks (MLPNN), tree-augmented Naïve Bayes (TAN), logistic regression, and the C5.0 decision tree model. The results indicated that these models were able to identify the most influential characteristics in customers' subscription decisions, but C5.0 and MLPNN had the highest predictive accuracy. This research is important because it shows how machine learning can support financial institutions in the improvement of customer targeting and optimization of marketing efforts.
+
+Koumétio et al. (2018) proposed a new classification method for enhancing telemarketing predictions related to banking. Operating on a dataset provided by a Portuguese retail bank, in the beginning, the researchers worked over 150 features, narrowing the selection down to 21 really important predictive variables. This technique outperforms traditional machine learning models that include Naïve Bayes, Decision Trees, ANN, and support vector machines. The results of this study show an enhanced f-measure with 60.12% improvements in the degree of accuracy predictive and campaign effectiveness.
+
+Bogireddy and Murari, 2024, conducted research on improving the efficiency of a bank telemarketing campaign by using machine learning models. The authors' work compared different classification methods, including XGBoost, gradient boosting, logistic regression, decision trees, and k-nearest neighbors. It seemed that, among the rest, XGBoost was one of the best performances for accuracy, precision, recall, and F1-score and thus most useful for identifying a future subscriber. It also emphasized feature selection, classification reports, and the evaluation of the ROC curve in the fine-tuning of predictive models for banking marketing strategies.
+
+Oni (2020) conducted an exploratory study on bank marketing campaigns using logistic regression, support vector machines, and k-nearest neighbors. The most influential factors affecting customer subscriptions were identified through the use of correlation heatmaps. The results showed that "duration" was the most critical factor in predicting client sign-ups, whereas the best model, KNN, resulted in an accuracy of 91.8%. This result underlines how important it is to understand the key drivers of customer engagement in order to optimize marketing campaign outcomes.
+
+Jiang et al. (2022) analyzed how logistic regression can be applied to predict bank term deposit subscriptions. In their research, they used correlation analysis to exclude the unimportant variables and thus enhance the model for better prediction. The findings were then compared with decision trees, which further solidified that logistic regression is one of the very strong tools in optimizing telemarketing strategy. These results of the study bring into focus the critical contribution of statistical modeling in refining customer targeting and improving subscription rates.
+
+# Initial Questions
+The primary goal of this project is to predict whether clients will subscribe to a term deposit by identifying the key factors that drive the success of banking subscription campaigns. To achieve this, the project seeks to address the following key questions:
+
+- What client characteristics, such as age, education, and job type, are most influential in driving subscriptions to term deposits?
+
+- How do financial attributes, including account balance and loan status, impact the likelihood of a client subscribing to a term deposit?
+
+- Which campaign-specific features, such as the frequency of contact and communication methods, play a crucial role in influencing subscription decisions?
+
+- What impact does call timing (including the day of the week and time of day) have on the success rate of subscription campaigns?
+
+- Which machine learning model offers the best predictive performance for accurately forecasting subscription outcomes?
+
+- What are the most important features identified by the most accurate machine learning model, and how can these insights inform and optimize future campaign strategies?
+
+By addressing these questions, the project aimed to uncover the most significant factors affecting subscription success and develop a predictive model that could accurately forecast campaign outcomes. Additionally, the insights gained would guide the formulation of more effective marketing strategies.
+
+# The Dataset
+
+This project utilizes the [Bank Marketing](https://archive.ics.uci.edu/ml/datasets/Bank+Marketing) dataset, collected from a Portuguese bank during a direct marketing campaign, originates from phone-based outreach efforts aimed at encouraging client subscriptions. By analyzing data from past campaigns, we aim to identify factors that might influence a client's decision to subscribe. The dataset includes 45,211 records of clients previously contacted by the bank. Each entry contains demographic details (e.g., age, job), campaign specifics (such as communication type and last contact day), and historical campaign data (e.g., number of prior contacts and previous outcomes). Additionally, each record indicates whether the client subscribed to a term deposit (represented by the variable **y**), classified as either 'yes' or 'no'.
+
+The primary task is to predict whether clients contacted during the campaign will subscribe to a term deposit. To achieve this, we will apply classification algorithms such as Decision Tree, Linear Discriminant Analysis (LDA), Quadratic Discriminant Analysis (QDA), and Naive Bayes. The table below provides a description of the features that will be included in the models.
+
+## Variables Table
+
+| **Variable Name** | **Role**    | **Type**        | **Description** |
+|--------------|---------|-------------|-------------|
+| **age**       | Feature | Integer     | Age         |
+| **job**       | Feature | Categorical | Type of job (categorical: 'admin', 'blue-collar', 'entrepreneur', 'housemaid', 'management', 'services', 'student', 'technician', 'unemployed', 'unknown') |
+| **marital**   | Feature | Categorical | Marital status (categorical: 'divorced', 'married', 'single', 'unknown'; note: 'divorced' includes 'widowed') |
+| **education** | Feature | Categorical | (categorical: 'basic.4y', 'basic.6y', 'basic.9y', 'high.school', 'illiterate', 'professional.course', 'university.degree', 'unknown') |
+| **default**   | Feature | Binary      | Has credit in default? |
+| **balance**   | Feature | Integer     | Average yearly balance |
+| **housing**   | Feature | Binary      | Has housing loan? |
+| **loan**      | Feature | Binary      | Has personal loan? |
+| **contact**   | Feature | Categorical | Contact communication type (categorical: 'cellular', 'telephone') |
+| **day_of_week** | Feature | Date      | Last contact day of the week |
+| **month**     | Feature | Date        | Last contact month of year (categorical: 'jan', 'feb', 'mar', ..., 'nov', 'dec') |
+| **duration**  | Feature | Integer     | Last contact duration, in seconds (numeric). Important: duration is only known after the call. |
+| **campaign**  | Feature | Integer     | Number of contacts performed during this campaign and for this client (numeric) |
+| **pdays**     | Feature | Integer     | Number of days that passed by after the client was last contacted from a previous campaign (-1 means client was not previously contacted) |
+| **previous**  | Feature | Integer     | Number of contacts performed before this campaign for this client |
+| **poutcome**  | Feature | Categorical | Outcome of the previous marketing campaign (categorical: 'failure', 'nonexistent', 'success') |
+| **y**         | Target  | Binary      | Has the client subscribed to a term deposit? |
+
+# Exploratory Data Analysis
+
+```{r echo=FALSE, include=FALSE}
+# Loading and Exploring the 'bank-full-2025' Dataset
+bank <- read.csv("bank-full-2025.csv", sep=",", header=TRUE, stringsAsFactors=FALSE)
+head(bank)
+glimpse(bank)
+
+```
+
+
+
+```{r echo=FALSE, include=FALSE}
+# Check missing
+if (any(is.na(bank))) {
+  cat("Missing data found. Number of missing values per column:\n")
+  print(colSums(is.na(bank)))
+} else {
+  cat("No missing data found.\n")
+}
+```
+
+
+
+
+```{r echo=FALSE, include=FALSE}
+
+# Load the dataset
+bank <- read.csv("bank-full-2025.csv", sep=",", header=TRUE, stringsAsFactors=FALSE)
+
+# Identify categorical columns from the Bank Marketing dataset
+categorical_columns <- c("job", "marital", "education", "default", 
+                         "housing", "loan", "contact", "month", 
+                         "poutcome", "y")
+
+# Calculate the percentage distribution for each categorical variable
+percentage_distributions <- lapply(categorical_columns, function(col) {
+  bank %>%
+    group_by(.data[[col]]) %>%
+    summarise(count = n()) %>%
+    mutate(percentage = (count / sum(count)) * 100) %>%
+    as.data.frame()  # Convert to data frame for better printing
+})
+
+# Assign names to the list
+names(percentage_distributions) <- categorical_columns
+
+# Print the results in a readable format
+for (col in categorical_columns) {
+  cat("\nPercentage distribution for", col, ":\n")
+  print(percentage_distributions[[col]], row.names = FALSE)  # Print without row numbers
+}
+
+
+```
+
+
+```{r echo=FALSE, include=FALSE}
+
+# Load the dataset
+bank <- read.csv("bank-full-2025.csv", sep=",", header=TRUE, stringsAsFactors=FALSE)
+
+# Identify numerical columns from the Bank Marketing dataset
+numerical_columns <- c("age", "balance", "day", "duration", "campaign", "pdays", "previous")
+
+# Calculate min, max, median, and mean for each numerical variable
+stats_summary <- lapply(numerical_columns, function(col) {
+  data.frame(
+    Min = min(bank[[col]], na.rm = TRUE),
+    Max = max(bank[[col]], na.rm = TRUE),
+    Median = median(bank[[col]], na.rm = TRUE),
+    Mean = mean(bank[[col]], na.rm = TRUE)
+  )
+})
+
+# Assign names to the list
+names(stats_summary) <- numerical_columns
+
+# Print the results in a readable format
+for (col in numerical_columns) {
+  cat("\nStatistics for", col, ":\n")
+  print(stats_summary[[col]], row.names = FALSE)
+}
+
+```
+
+
+The dataset contains detailed information about clients contacted during a marketing campaign by a Portuguese bank. It includes demographic details, campaign-specific information, and historical interactions. Key features include age, job, marital status, and education, as well as financial data such as balance (account balance) and campaign-related attributes like contact, duration of calls, and the number of previous contacts (campaign and previous). The target variable **y** indicates whether a client subscribed to a term deposit (yes or no). A total of 45,211 entries are present in the dataset, with 39,922 (88.30%) clients not subscribing and 5,289 (11.69%) clients subscribing.
+
+The summary statistics reveal interesting patterns. The average age is 40.94, with most clients falling between the first and third quartiles of 33 and 48, respectively. Most clients are employed in management (21%), blue-collar jobs (20.5%), or as technicians (17%). Marital status is predominantly married (60.20%), followed by single (28.30%) and divorced (11.50%). Regarding education, secondary education is most common (51%), followed by tertiary education (29.40%). Financially, the median account balance is 448, but there is a large range, with values as high as 10,2127, indicating high variability in clients’ financial status.
+
+```{r echo=FALSE, include=FALSE}
+
+
+# Initialize an empty data frame to store the final results
+final_result <- data.frame(Variable = character(), No = numeric(), Yes = numeric(), stringsAsFactors = FALSE)
+
+# Loop through each column except the target variable "y"
+for (col in names(bank)[names(bank) != "y"]) {
+  
+  # Calculate the percentage of 'yes' and 'no' for each variable
+  percentage <- bank %>%
+    group_by(!!sym(col), y) %>%
+    summarise(count = n(), .groups = 'drop') %>%
+    group_by(!!sym(col)) %>%
+    mutate(percentage = (count / sum(count)) * 100) %>%
+    summarise(No = sum(percentage[y == "no"], na.rm = TRUE), 
+              Yes = sum(percentage[y == "yes"], na.rm = TRUE))
+  
+  # Calculate the overall percentage for "no" and "yes"
+  no_percent <- mean(percentage$No, na.rm = TRUE)
+  yes_percent <- mean(percentage$Yes, na.rm = TRUE)
+  
+  # Create a row for the variable with overall percentages
+  new_row <- data.frame(Variable = col, No = no_percent, Yes = yes_percent)
+  
+  # Append to the final result data frame
+  final_result <- rbind(final_result, new_row)
+}
+
+# Print the final structured result
+print(final_result)
+```
+
+```{r echo=FALSE, include=FALSE}
+# Load the data set
+bank <- read.csv("bank-full-2025.csv", sep=",", header=TRUE, stringsAsFactors=FALSE)
+
+# Convert categorical columns to factors
+categorical_vars <- c('job', 'marital', 'education', 'default', 'housing', 'loan', 'contact', 'month', 'poutcome', 'y')
+bank[categorical_vars] <- lapply(bank[categorical_vars], as.factor)
+
+# Function to calculate the effect of categorical variables on the target variable
+analyze_effect <- function(var) {
+  # Calculate the count of "yes" and "no" for each level of the variable
+  summary_stats <- bank %>% 
+    group_by_at(vars(var, 'y')) %>% 
+    summarise(count = n(), .groups = 'drop') %>% 
+    group_by_at(vars(var)) %>% 
+    mutate(percentage = count / sum(count) * 100) %>%
+    # Calculate the percentage of "yes" and "no" for each level
+    pivot_wider(names_from = y, values_from = c(count, percentage), values_fill = list(count = 0, percentage = 0))
+  
+  # Print the summary statistics
+  print(paste("Effect of", var, "on Subscription:"))
+  print(summary_stats)
+  cat("\n")
+}
+
+# Apply the function to each categorical variable and print the result
+for (var in categorical_vars[-10]) { # Exclude the target variable itself from analysis
+  analyze_effect(var)
+}
+```
+
+```{r echo=FALSE, include=FALSE}
+# Variable Importance Based on Group Means Difference (Using Scaled Data)
+
+# Step 1: Load the dataset directly from the file
+data <- read.csv("bank-full-2025.csv", sep=",", header=TRUE, stringsAsFactors=FALSE)
+
+# Step 2: Convert the target variable 'y' to a factor (if not already)
+data$y <- as.factor(data$y)
+
+# Step 3: Identify numeric and categorical columns, excluding the target variable 'y'
+numeric_cols <- sapply(data, is.numeric)
+categorical_cols <- names(data)[(sapply(data, is.character) | sapply(data, is.factor)) & names(data) != "y"]
+
+# Step 4: Scale the numeric columns
+data[names(data)[numeric_cols]] <- scale(data[names(data)[numeric_cols]])
+
+# Step 5: Calculate mean differences for scaled numeric variables
+group_means <- aggregate(. ~ y, data = data[, c("y", names(data)[numeric_cols])], FUN = mean, na.rm = TRUE)
+
+# Print the group means for each level ("yes" and "no")
+cat("\nGroup Means (Scaled Data):\n")
+print(group_means)
+
+# Step 6: Calculate the difference between group means and identify which group has the higher mean
+mean_differences <- data.frame(
+  Variable = names(group_means)[-1], 
+  Mean_Yes = as.numeric(group_means[group_means$y == "yes", -1]), 
+  Mean_No = as.numeric(group_means[group_means$y == "no", -1]), 
+  Difference = as.numeric(group_means[group_means$y == "yes", -1] - group_means[group_means$y == "no", -1]), 
+  Higher = ifelse(as.numeric(group_means[group_means$y == "yes", -1]) > as.numeric(group_means[group_means$y == "no", -1]), "Yes", "No")
+)
+
+# Step 7: Calculate frequency differences for categorical variables (based on the target variable 'y')
+categorical_diff <- lapply(categorical_cols, function(var) {
+  # Calculate the proportion for each category within each level of the target variable 'y'
+  tab <- prop.table(table(data[[var]], data$y), margin = 2)
+  # Calculate the absolute difference between the two proportions for each category
+  diff <- abs(tab[, "no"] - tab[, "yes"])
+  # Aggregate the differences to get a single value per variable (sum of absolute differences)
+  total_diff <- sum(diff, na.rm = TRUE)
+  # Determine the higher group based on the sum of proportions for each group
+  higher_group <- ifelse(sum(tab[, "no"], na.rm = TRUE) > sum(tab[, "yes"], na.rm = TRUE), "No", "Yes")
+  # Return as a single-row data frame
+  data.frame(Variable = var, Difference = total_diff, Higher = higher_group)
+})
+
+# Flatten the categorical difference list into a data frame
+categorical_differences <- do.call(rbind, categorical_diff)
+
+# Combine numeric and categorical differences into one data frame
+combined_differences <- rbind(
+  data.frame(Variable = mean_differences$Variable, Difference = mean_differences$Difference, Higher = mean_differences$Higher),
+  data.frame(Variable = categorical_differences$Variable, Difference = categorical_differences$Difference, Higher = categorical_differences$Higher)
+)
+
+# Sort the combined differences by absolute difference in descending order
+combined_differences <- combined_differences[order(-abs(combined_differences$Difference)), ]
+
+# Step 8: Print the sorted variable importance
+cat("\nSorted Variable Importance (Based on Scaled Group Means and Frequency Difference):\n")
+print(combined_differences)
+
+```
+
+The analysis of factors affecting subscription in the marketing campaign reveals that job type significantly influences subscription rates. Students (28.7%) and retired individuals (22.8%) show the highest subscription rates, indicating that individuals with more flexibility or fewer financial burdens are more likely to subscribe. In contrast, blue-collar workers (7.27%) and entrepreneurs (8.27%) exhibit lower rates, possibly due to financial constraints or occupational demands.
+
+Marital status also plays a role, with single individuals (14.9%) having a higher likelihood of subscribing compared to married (10.1%) and divorced (11.9%) individuals. This suggests that singles may be more open to marketing offers. Educational background impacts subscription as well, with tertiary-educated individuals (15%) subscribing more than those with primary education (8.63%). This implies that higher education correlates with better financial planning or openness to new services.
+
+Financial factors such as loan and default status also play a significant role. Individuals without loans (12.7%) and no credit defaults (11.8%) are more likely to subscribe, while those with housing loans (7.7%) or personal loans (6.68%) show lower rates. This highlights the impact of financial stability on subscription decisions.
+
+Contact method and timing are crucial as well. Cellular contact (14.9%) proves more effective than telephone (13.4%) or unknown methods (4.07%), indicating that direct and personal communication channels yield better results. Additionally, timing affects success, with March (52%) and December (46.7%) showing peak subscription rates. This suggests that marketing efforts are more fruitful during these months. Previous campaign success is also a strong predictor, as past successful outcomes (64.7%) lead to higher current subscriptions.
+
+Among the key variables, the duration of contact has the most positive impact on subscription, followed by the month of contact, housing status, contact type, and previous outcome. On the other hand, campaign frequency and specific contact days negatively influence subscription. The analysis suggests focusing on targeted campaigns during favorable months, using direct communication methods, and considering the financial and demographic profiles of potential subscribers to maximize effectiveness.
+
+The analysis of these features suggests that client demographics, financial information, and campaign history play varying roles in determining subscription likelihood. This variability reinforces the importance of combining multiple predictors to create a robust classification model. Understanding these relationships will enable the bank to better target clients in future campaigns.
+
+
+
+```{r load_data, echo=FALSE, include=FALSE}
+
+# Load the data
+bank <- read.csv("bank-full-2025.csv", sep=",", header=TRUE, stringsAsFactors=FALSE)
+
+# Set theme for all plots
+theme_set(theme_minimal())
+```
+
+
+```{r, echo=FALSE}
+ggplot(bank, aes(x = age, fill = y)) +
+  geom_histogram(position = "dodge", bins = 30) +
+  ggtitle("Distribution of Age \nby Subscription Outcome")
+```
+
+From the Age Distribution by Target Variable plot: Younger age groups (around 25-35) are more likely to have positive responses compared to older groups. The age distribution is skewed to the right, with most clients being relatively young.
+
+```{r, echo=FALSE}
+ggplot(bank, aes(x = job, fill = y)) +
+  geom_bar(position = "dodge") +
+  ggtitle("Distribution of Job Types \nby Subscription Outcome") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+From the Job Distribution by Target Variable plot: The most common job types are "blue-collar" and "management." Positive responses are more frequent among jobs like "student" and "entrepreneur" compared to "blue-collar" and "management."
+
+```{r, echo=FALSE}
+ggplot(bank, aes(x = marital, fill = y)) +
+  geom_bar(position = "dodge") +
+  ggtitle("Distribution of Marital Status \nby Subscription Outcome")
+```
+
+From the Marital Status Distribution by Target Variable plot: Most clients are married, followed by single and divorced individuals. Positive responses are relatively more frequent among single individuals compared to married ones.
+
+
+
+```{r, echo=FALSE}
+ggplot(bank, aes(x = education, fill = y)) +
+  geom_bar(position = "dodge") +
+  ggtitle("Distribution of Education Levels \nby Subscription Outcome") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+From the Education Level Distribution by Target Variable plot: Most clients have secondary or tertiary education, with secondary being the most common. The positive responses are more evenly distributed across education levels compared to the negative responses, which are concentrated mainly in the secondary education group.
+
+```{r, echo=FALSE}
+ggplot(bank, aes(x = default, fill = y)) +
+  geom_bar(position = "dodge") +
+  ggtitle("Distribution of Credit Default Status \nby Subscription Outcome")
+```
+
+From the Default Status Distribution by Target Variable plot: The vast majority of clients have no default on credit (indicated by "no"), while a small minority have a default ("yes"). Most positive responses come from those without credit defaults.
+
+```{r, echo=FALSE}
+ggplot(bank, aes(x = contact, fill = y)) +
+  geom_bar(position = "dodge") +
+  ggtitle("Distribution of Contact Methods \nby Subscription Outcome")
+```
+
+From the Contact Type Distribution by Target Variable plot: Most contacts are made via cellular phones, with a smaller number through telephone, and a notable portion marked as unknown. Among the contacts, those made via cellular phones have a relatively higher proportion of positive responses compared to other contact types.
+
+
+```{r, echo=FALSE}
+
+ggplot(bank, aes(x = y, fill = y)) +
+  geom_bar() +
+  labs(title = "Overall Distribution of Subscription Outcome \n(Target Variable y)", x = "Target Variable (y)", y = "Count") +
+  theme_minimal()
+```
+
+From the Target Variable Distribution (Overall) plot: The majority of the responses are "no," indicating an imbalanced dataset with significantly fewer positive responses ("yes").
+
+
+
+```{r, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+
+# Select numeric variables from the dataset
+numeric_vars <- bank %>% select_if(is.numeric)
+
+# Calculate the correlation matrix
+cor_matrix <- cor(numeric_vars, use = "complete.obs")
+print("Correlation Matrix of Numeric Variables:")
+print(cor_matrix)
+
+# Melt the correlation matrix into a format suitable for ggplot
+cor_melt <- melt(cor_matrix)
+```
+
+```{r, echo=FALSE}
+# Plot the correlation matrix with a blue-red color gradient
+ggplot(cor_melt, aes(Var1, Var2, fill = value)) +
+  geom_tile(color = "white") +
+  geom_text(aes(label = round(value, 2)), color = "black", size = 3) + # Display correlation values
+  scale_fill_gradient2(low = "blue", mid = "white", high = "red", midpoint = 0, limits = c(-1, 1)) + 
+  labs(title = "Correlation Matrix of Numeric Variables \nin Bank Marketing Data", x = "", y = "") +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 10),
+    axis.text.y = element_text(size = 10),
+    plot.title = element_text(hjust = 0.5, size = 8, face = "bold")
+  )
+
+
+
+```
+
+
+The correlation matrix shows the relationships between numeric variables from the dataset. The strongest positive correlation is observed between previous contacts (previous) and days since last contact (pdays) with a value of 0.45, indicating a moderate positive relationship. Another weak positive correlation is seen between balance and age (0.1), suggesting that as age increases, balance slightly tends to increase. There are weak negative correlations, such as between pdays and campaign (-0.09), and day and campaign (-0.08), indicating minimal inverse relationships. Most variable pairs show correlations close to zero, suggesting no significant linear relationship, which implies that these variables are mostly independent and can individually contribute to predictive models without redundancy. 
+
+
+```{r, echo=FALSE}
+
+# Load the dataset
+bank <- read.csv("bank-full-2025.csv", sep=",", header=TRUE, stringsAsFactors=FALSE)
+
+# Create the scatter plot with age on x-axis, duration on y-axis, and y as color
+ggplot(bank, aes(x = age, y = duration, color = y)) +
+  geom_point(size = 2, alpha = 0.7) +
+  labs(title = "Scatter Plot of Call Duration vs Age \nby Subscription Outcome", 
+       x = "Age", y = "Duration") +
+  scale_color_manual(values = c("no" = "red", "yes" = "green")) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 8, face = "bold"),
+    axis.title.x = element_text(size = 14, face = "bold"),
+    axis.title.y = element_text(size = 14, face = "bold")
+  )
+```
+
+
+The scatter plot of age versus duration shows that the majority of successful outcomes (marked as "yes" in green) tend to occur when the duration is relatively high, especially among individuals aged between 25 and 50. In contrast, shorter call durations are predominantly associated with unsuccessful outcomes ("no" in red), regardless of age. This indicates that the duration of a call plays a more significant role in determining the outcome compared to age. While age alone does not appear to strongly influence the outcome, combining longer durations with middle age appears to increase the likelihood of a successful result.
+
+```{r, echo=FALSE}
+# Create the scatter plot with balance on x-axis, duration on y-axis, and y as color
+ggplot(bank, aes(x = balance, y = duration, color = y)) +
+  geom_point(size = 2.5, alpha = 0.7) +
+  scale_color_manual(values = c("no" = "red", "yes" = "green")) +
+  labs(title = "Scatter Plot of Call Duration vs Account Balance \nby Subscription Outcome", 
+       y = "Balance", x = "Duration", color = "Outcome") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 8, face = "bold"),
+    axis.title.x = element_text(size = 16, face = "bold"),
+    axis.title.y = element_text(size = 16, face = "bold"),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12)
+  )
+```
+
+
+The scatter plot of balance versus duration highlights that successful outcomes ("yes" in green) tend to occur more frequently when the call duration is longer, regardless of the balance. The majority of both "yes" and "no" outcomes are concentrated in the area where balance is low and duration is short, indicating a dense cluster of calls with lower success rates. Although there are some instances of high balances associated with both outcomes, they are relatively rare. This pattern suggests that call duration has a more substantial impact on the campaign success than the balance, reinforcing the idea that duration is a key variable to consider when predicting outcomes.
+
+
+```{r, echo=FALSE}
+# Create the scatter plot with previous on x-axis, pdays on y-axis, and y as color
+ggplot(bank, aes(y = previous, x = pdays, color = factor(y))) +
+  geom_point(size = 2.5, alpha = 0.7) +
+  scale_color_manual(values = c("no" = "red", "yes" = "green")) +
+  labs(title = "Scatter Plot of Previous Contacts vs Days Since Last \nContact (Pdays) by Subscription Outcome", 
+       y = "Previous", x = "Pdays", color = "Outcome") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 8, face = "bold"),
+    axis.title.x = element_text(size = 16, face = "bold"),
+    axis.title.y = element_text(size = 16, face = "bold"),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12)
+  )
+
+```
+
+The scatter plot shows the relationship between the number of previous contacts (previous) and the number of days since the last contact (pdays), with the outcome (y) represented. Most data points are clustered near the origin, indicating that many clients had either no or few previous contacts and were recently contacted. This cluster predominantly consists of non-subscribers, suggesting that frequent previous contacts or recent contact does not guarantee a subscription. Some data points show high previous values (over 100), but these are mostly non-subscribers, indicating that persistent contact attempts may not yield positive results. Additionally, the horizontal spread shows that clients contacted after a long period (high pdays) are less likely to subscribe, as seen by the predominance of red points on the right side of the plot. In contrast, successful subscriptions (green points) are relatively sparse and tend to occur when the previous contact number is low and the last contact was not too long ago, suggesting that fewer, more recent interactions are more effective in leading to a positive outcome.
+
+# Data Analysis
+
+```{r echo=FALSE, include=FALSE}
+# Load the dataset
+bank <- read.csv("bank-full-2025.csv", sep=",", header=TRUE, stringsAsFactors=FALSE)
+
+# Data Type Conversion: Transforming Character and Integer Variables:
+# Convert character variables to factors:
+bank <- bank %>%
+  mutate(across(where(is.character), as.factor))
+
+# Convert integer variables to numeric:
+bank <- bank %>%
+  mutate(across(where(is.integer), as.numeric))
+
+# Glimpse of the transformed data
+glimpse(bank)
+
+```
+
+
+```{r echo=FALSE, include=FALSE}
+# Check for remaining issues - Summary of the dataset
+cat("Summary of Dataset:\n")
+summary(bank)
+```
+
+
+```{r echo=FALSE, include=FALSE}
+# Check for missing values
+missing_values <- colSums(is.na(bank))
+
+# Convert missing values to a tibble for better readability
+missing_table <- tibble(Column = names(missing_values), MissingCount = missing_values)
+
+# Print the missing values table, if any
+missing_table %>%
+  arrange(desc(MissingCount)) %>%
+  print()
+
+```
+
+```{r echo=FALSE, include=FALSE}
+# Identify numeric columns for scaling
+numeric_cols <- sapply(bank, is.numeric)
+
+# Scale only the numeric columns
+scaled_data <- scale(bank[, numeric_cols])
+
+# Combine scaled numeric data with non-numeric columns
+scaled_data <- as.data.frame(cbind(scaled_data, bank[, !numeric_cols]))
+
+# Fix target variable to have valid factor names
+scaled_data$y <- factor(make.names(scaled_data$y))
+
+# Glimpse the scaled data
+glimpse(scaled_data)
+
+```
+
+```{r echo=FALSE, include=FALSE}
+# Split training and testing sets
+set.seed(2024)
+trainIndex <- createDataPartition(scaled_data$y, p = 0.7, list = FALSE)
+trainData <- scaled_data[trainIndex, ]
+testData <- scaled_data[-trainIndex, ]
+
+```
+
+
+```{r echo=FALSE, include=FALSE}
+# Define control for 10-fold cross-validation
+control <- trainControl(
+  method = "cv",
+  number = 10,
+  classProbs = TRUE,
+  summaryFunction = twoClassSummary
+)
+
+```
+
+
+```{r echo=FALSE, include=FALSE}
+# Models
+set.seed(2025)
+
+# Decision Tree
+tree_model <- train(y ~ ., data = trainData, method = "rpart", trControl = control, metric = "ROC")
+
+# LDA
+lda_model <- train(y ~ ., data = trainData, method = "lda", trControl = control, metric = "ROC")
+
+# QDA
+qda_model <- train(y ~ ., data = trainData, method = "qda", trControl = control, metric = "ROC")
+
+# Naive Bayes
+nb_model <- train(y ~ ., data = trainData, method = "naive_bayes", trControl = control, metric = "ROC")
+
+# Combine models into a list
+models <- list(
+  Tree = tree_model, 
+  LDA = lda_model, 
+  QDA = qda_model, 
+  NaiveBayes = nb_model
+)
+
+```
+
+
+```{r echo=FALSE, include=FALSE}
+# Evaluate models and print results
+results <- lapply(models, function(model) {
+  # Predict class probabilities
+  pred_probs <- predict(model, newdata = testData, type = "prob")[, levels(testData$y)[2]]
+  pred_class <- predict(model, newdata = testData)
+  
+  # Confusion Matrix
+  cm <- confusionMatrix(pred_class, testData$y)
+  
+  # ROC and AUC
+  roc_obj <- roc(testData$y, pred_probs, levels = rev(levels(testData$y)))
+  
+  # Collect Metrics
+  list(
+    Model = model$method,
+    ConfusionMatrix = cm,
+    ROC = roc_obj,
+    AUC = auc(roc_obj)
+  )
+})
+
+# Display the results
+for (res in results) {
+  cat("\nModel:", res$Model, "\n")
+  print(res$ConfusionMatrix)
+  cat("AUC:", res$AUC, "\n")
+}
+
+
+```
+
+Machine learning models are evaluated empirically, as there is no single model that consistently performs best across all datasets. Therefore, it is essential to use different models for various applications. This study evaluates the performance of four classification models to predict client subscription to term deposits. These models include Decision Tree (Rpart), Linear Discriminant Analysis (LDA), Quadratic Discriminant Analysis (QDA), and Naive Bayes. The data was divided into training and testing sets, with 70% used for training and 30% for testing. A 10-fold cross-validation approach was employed to optimize model parameters, and the test set was used for final evaluation.
+
+
+```{r, echo=FALSE}
+# Plot ROC Curves
+# Function to plot individual ROC curves
+plot_roc <- function(roc_obj, model_name) {
+  plot(roc_obj, col = "blue", lwd = 2, main = paste("ROC Curve -", model_name))
+  abline(a = 0, b = 1, col = "gray", lty = 2)  # Add diagonal reference line
+  text(0.7, 0.2, paste("AUC =", round(auc(roc_obj), 3)), col = "red")  # Display AUC value
+}
+
+# Set up a 2x3 grid for ROC plots
+par(mfrow = c(2, 2))
+
+# Loop through models and plot ROC curves
+for (model in names(results)) {
+  plot_roc(results[[model]]$ROC, model)
+}
+
+# Reset layout to default
+par(mfrow = c(1, 1))
+```
+
+
+The Decision Tree (Rpart) model achieved an accuracy of 90.08% (95% CI: 89.56%, 90.57%), with a sensitivity of 97.77% and specificity of 31.97%. The balanced accuracy was 64.87%, and the AUC was 0.748, indicating reasonable classification performance despite potential overfitting on the training data.
+
+The LDA model demonstrated strong performance, achieving an accuracy of 90.24% (95% CI: 89.73%, 90.73%), with sensitivity of 96.28% and specificity of 44.64%. The balanced accuracy was 70.46%, and the AUC was 0.91, indicating good discrimination between classes.
+
+The QDA model achieved an accuracy of 86.71% (95% CI: 86.13%, 87.28%) with sensitivity of 91.77% and specificity of 48.55%. The balanced accuracy was 70.16%, and the AUC was 0.854, suggesting a decent ability to distinguish between classes.
+
+The Naive Bayes model exhibited an accuracy of 88.25% (95% CI: 87.70%, 88.80%) with the highest sensitivity among all models (99.94%) but a specificity of 0%. This resulted in a balanced accuracy of 49.97% and an AUC of 0.867, indicating limited class differentiation.
+
+Among the evaluated models, LDA demonstrated the best overall performance, with high accuracy, balanced sensitivity and specificity, and the highest AUC. Decision Tree and QDA showed reasonable performance but were less balanced in handling class imbalances. Naive Bayes, despite high sensitivity, showed poor specificity and balanced accuracy.
+
+For future applications, LDA is recommended due to its reliable and balanced predictions, making it suitable for predicting client subscriptions in marketing campaigns. Addressing class imbalances and enhancing feature engineering may further improve model performance.
+
+
+# Narrative and Summary
+
+```{r echo=FALSE, include=FALSE}
+# Display variable importance from LDA using varImp
+lda_importance <- varImp(lda_model)
+print(lda_importance)
+
+```
+
+
+```{r, echo=FALSE}
+# Plot variable importance
+plot(lda_importance, top = 16, main = "Ranking Featuers by Importance in the LDA Model")
+```
+
+
+```{r   echo=FALSE, include=FALSE}
+# Variable Importance Based on LDA Coefficients (Scaling) :
+# Step 1: Extract coefficients (scaling) from the LDA model
+lda_coefficients <- lda_model$finalModel$scaling
+
+# Step 2: Calculate the absolute value of coefficients as importance
+lda_importance <- abs(lda_coefficients)
+
+# Step 3: Convert to a data frame
+lda_importance_df <- as.data.frame(lda_importance)
+
+# Step 4: Add a column with variable names
+lda_importance_df$Feature <- rownames(lda_importance_df)
+
+# Step 5: Sort by importance (absolute value of scaling)
+lda_importance_df <- lda_importance_df[order(-lda_importance_df[, 1]), ]
+
+# Step 6: Print the ranked importance
+cat("\nVariable Importance (Ranked by Coefficient Magnitude):\n")
+print(lda_importance_df)
+
+```
+
+
+This project aimed to identify the most influential factors affecting the success of banking subscription campaigns by employing predictive analytics and machine learning techniques. Through an in-depth analysis of client demographics, financial attributes, campaign-specific features, and call timing, we derived valuable insights to optimize future marketing strategies.
+
+Our findings reveal that client characteristics such as age, job type, and marital status significantly influence subscription decisions. Younger clients (particularly those aged between 25 and 35) are more likely to subscribe compared to older age groups. Job types such as "student" and "retired" showed higher subscription rates, while "blue-collar" and "entrepreneur" occupations were less likely to result in a positive outcome. Additionally, single individuals were more inclined to subscribe compared to married or divorced clients, and clients with higher educational attainment (tertiary education) were more responsive to subscription offers.
+
+Financial factors also play a crucial role. Clients with no personal or housing loans demonstrated a greater likelihood of subscribing, highlighting the impact of financial stability on marketing success. A higher account balance positively correlated with subscription rates, but it was not as influential as other factors, particularly call duration.
+
+Campaign-specific features like the method of contact and the timing of the call were also influential. Cellular contact methods proved significantly more effective than landlines or unknown contact types. Moreover, longer call durations had a substantial positive effect on subscription rates, reinforcing the importance of sustained client engagement during interactions. Additionally, the timing of campaigns (particularly in March and December) contributed to higher success rates, indicating seasonal patterns in client responsiveness.
+
+Among the machine learning models tested, Linear Discriminant Analysis (LDA) emerged as the most effective, offering high accuracy, balanced sensitivity, and specificity, with an AUC of 0.91. This model outperformed other algorithms, including Decision Trees, Naive Bayes, and Quadratic Discriminant Analysis, by providing a robust and reliable prediction framework. The key features identified by the LDA model—call duration, month of contact, housing status, and contact type—highlight areas where targeted improvements can enhance campaign effectiveness.
+
+In summary, the integration of predictive analytics in banking marketing strategies can significantly improve the targeting and efficiency of subscription campaigns. By leveraging data-driven insights, banks can better understand client preferences and behaviors, enabling more personalized and successful marketing initiatives. Future efforts should focus on refining data collection practices, addressing class imbalances, and continuously updating models to adapt to changing client dynamics.
+
+\newpage
+# References
+
+Asuncion, A., Moro, S., Cortez, P., & Rita, P. (2012). Bank marketing dataset. UCI Machine Learning Repository.
+
+Bogireddy, S. R., & Murari, H. (2024). Machine learning for predictive telemarketing: Boosting campaign effectiveness in banking. IEEE International Conference on Predictive Analytics, 10(3), 23-31.
+
+Buddiga, S. K. P. (2022). Improving targeted client acquisition: Predictive analysis of retail bank direct marketing campaigns. Journal of Technological Innovations, 3(2), 1-12.
+
+Elsalamony, H. A. (2013). Bank direct marketing analysis of data mining techniques. International Journal of Computer Applications, 85(7), 12-22.
+
+Hou, S., Cai, Z., Wu, J., Du, H., & Xie, P. (2022). Applying machine learning to the development of prediction models for bank deposit subscription. International Journal of Business Analytics, 9(1), 1-12.
+
+Jiang, E., Wang, Z., & Zhao, J. (2022). Prediction of term deposit in banks: Using logistic models. BCP Business & Management, 34(1), 607-620.
+
+Koumétio, C. S. T., Cherif, W., & Hassan, S. (2018). Optimizing the prediction of telemarketing target calls by a classification technique. IEEE Transactions on Machine Learning, 15(4), 45-58.
+
+Oni, J. O. (2020). Exploratory analysis of bank marketing campaigns using machine learning: Logistic regression, support vector machine, and k-nearest neighbor. MSc Research Project, National College of Ireland.
+
+Peter, M., Mofi, H., Likoko, S., Sabas, J., Mbura, R., & Mduma, N. (2025). Predicting customer subscription in bank telemarketing campaigns using ensemble learning models. Machine Learning with Applications, 19, 100618.
+
+Vashi, H., Yadav, J., & Varde, A. S. (2024). Predictive analysis of bank marketing for financial decision support and smart economy. ResearchGate.
+
+Zaki, A. M., Khodadadi, N., Lim, W. H., & El-Kenawy, E. M. (2024). Predictive analytics and machine learning in direct marketing for anticipating bank term deposit subscriptions. ResearchGate.
+
+
+
+
+
+
+
+
+
+
