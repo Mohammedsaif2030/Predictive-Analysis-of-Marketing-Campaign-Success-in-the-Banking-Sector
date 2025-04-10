@@ -1,7 +1,7 @@
 ---
 output: 
   pdf_document:
-    toc: false             # ✅ Disable auto TOC
+    toc: false             
     toc_depth: 1
     number_sections: true
     latex_engine: pdflatex
